@@ -39,14 +39,14 @@ def default_loss_fn(muzero_instance, params, batch):
     B, L = batch.a.shape
     batch.r = scalar_to_support(batch.r, muzero_instance._support_size).reshape(B, L, -1)
     batch.Rn = scalar_to_support(batch.Rn, muzero_instance._support_size).reshape(B, L, -1)
-    s = muzero_instance._repr_apply(params['representation'], batch.obs[:, 0])
+    s = muzero_instance._repr_apply(params.representation, batch.obs[:, 0])
     # TODO: jax.lax.scan (or stay with fori_loop ?)
     def body_func(i, loss_s):
       loss, s = loss_s
-      v, logits = muzero_instance._pred_apply(params['prediction'], s)
+      v, logits = muzero_instance._pred_apply(params.prediction, s)
       # Appendix G, scale the gradient at the start of the dynamics function by 1/2 
       s = scale_gradient(s, 0.5)
-      r, ns = muzero_instance._dy_apply(params['dynamic'], s, batch.a[:, i].flatten())
+      r, ns = muzero_instance._dy_apply(params.dynamic, s, batch.a[:, i].flatten())
       # losses: reward
       loss_r = jnp.mean(
         optax.softmax_cross_entropy(r, 
